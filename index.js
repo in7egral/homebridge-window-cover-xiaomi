@@ -16,9 +16,11 @@ function WindowCover(log, config) {
 	this.log = log;
 	this.name = config.name || "Window cover";
 	this.id = config.id || 0;
+  this.token = config.token;
+  this.ip = config.ip;
 	this.pythonScriptPath = config.pythonScriptPath;
 	this.pythonScriptName = config.pythonScriptName;
-	this.apiroute = config.apiroute;
+  this.pythonPath = config.pythonPath;
 
 
 	// Required Characteristics
@@ -83,8 +85,9 @@ WindowCover.prototype = {
 		if(this.pythonScriptPath !== undefined) {
 
 			var options = {};
-			options.args = this.targetPosition;
+      options.args = [ this.ip, this.token, this.targetPosition ];
 			options.scriptPath = this.pythonScriptPath
+      options.pythonPath = this.pythonPath
 
 			PythonShell.run(this.pythonScriptName, options, function (err, results) {
 			  	if (err) {
@@ -99,26 +102,6 @@ WindowCover.prototype = {
 					this.service.setCharacteristic(Characteristic.PositionState, Characteristic.PositionState.STOPPED);
 				  	callback(null); // success
 			  	}
-			}.bind(this));
-		} else if (this.apiroute !== undefined) {
-			//HTTP API ACTION
-			var url = this.apiroute + "/targetposition/"+ this.id + "/" + this.targetPosition;
-			this.log("GET", url);
-			request.get({
-				url: url
-			}, function(err, response, body) {
-				if (!err && response.statusCode == 200) {
-					this.log("Response success");
-					this.currentPosition = this.targetPosition;
-					this.service.setCharacteristic(Characteristic.CurrentPosition, this.currentPosition);
-					this.log("currentPosition is now %s", this.currentPosition);
-					this.service.setCharacteristic(Characteristic.PositionState, Characteristic.PositionState.STOPPED);
-					//doSuccess.bind(this);
-					callback(null); // success
-				} else {
-					this.log("Response error" , err);
-					callback(err);
-				}
 			}.bind(this));
 		} else {
 			//FAKE SUCCESS
@@ -144,9 +127,9 @@ WindowCover.prototype = {
 		var informationService = new Service.AccessoryInformation();
 
 		informationService
-			.setCharacteristic(Characteristic.Manufacturer, "HTTP Manufacturer")
-			.setCharacteristic(Characteristic.Model, "HTTP Model")
-			.setCharacteristic(Characteristic.SerialNumber, "HTTP Serial Number");
+			.setCharacteristic(Characteristic.Manufacturer, "Xiaomi Lumi")
+			.setCharacteristic(Characteristic.Model, "Smart Curtain Controller")
+			.setCharacteristic(Characteristic.SerialNumber, "hello");
 
 		this.service
 			.getCharacteristic(Characteristic.Name)
