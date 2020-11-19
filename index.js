@@ -71,14 +71,12 @@ WindowCover.prototype = {
 					//console.log('Success ! Results: %j', results);
 					if (Array.isArray(results) && results.length > 0) {
 						this.currentPosition = results[0];
-						if (this.targetNotSet) {
-							this.targetPosition = this.currentPosition;
-							this.targetNotSet = false;
-						}
 					}
 					else {
 						this.currentPosition = 100;
 					}
+					this.targetPosition = this.currentPosition; // prevent infinite opening state
+					this.targetNotSet = false;
 					this.service.setCharacteristic(Characteristic.CurrentPosition, this.currentPosition);
 					this.log("currentPosition is now %d", this.currentPosition);
 					this.service.setCharacteristic(Characteristic.PositionState, Characteristic.PositionState.STOPPED);
@@ -119,11 +117,15 @@ WindowCover.prototype = {
 						else {
 							this.targetPosition = 100;
 						}
+						this.currentPosition = this.targetPosition;
 						this.log("targetPosition is now %d", this.targetPosition);
 						callback(error, this.targetPosition); // success
 					}
 				}.bind(this));
 				this.targetNotSet = false;
+			}
+			else {
+				callback("no python script path is set", 0);
 			}
 		}
 		if (this.targetNotSet) {
